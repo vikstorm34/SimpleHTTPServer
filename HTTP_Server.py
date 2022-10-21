@@ -16,14 +16,13 @@ class ConnectionThread(Thread):
 
         try:
             message = connectionSocket.recv(1024)
-            print(message)
             filename = message.split()[1]
-            print(path.exists(filename[1:]))
+            print("File Exists: " + str(path.exists(filename[1:])))
 
             f = open(filename[1:])
             outputdata = f.read()
 
-            connectionSocket.send(('HTTP/1.1 200 OK\r\n\r\n').encode())
+            connectionSocket.send('HTTP/1.1 200 OK\r\n\r\n'.encode())
             for i in range(0, len(outputdata)):
                 connectionSocket.send(outputdata[i].encode())
             connectionSocket.send("\r\n".encode())
@@ -53,8 +52,8 @@ while True:
     nextThread.start()
     threads.append(nextThread)
 
-for thread in threads:
-    thread.join()
+    for thread in threads:
+        thread.join()
 
 serverSocket.close()
 sys.exit()  # Terminate the program after sending the corresponding data
