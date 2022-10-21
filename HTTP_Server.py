@@ -1,5 +1,7 @@
 from socket import *
 from threading import Thread
+import os.path
+from os import path
 import sys  # In order to terminate the program
 
 
@@ -11,10 +13,13 @@ class ConnectionThread(Thread):
         self.PORT = PORT
 
     def run(self):
-        while True:
+
+        try:
             message = connectionSocket.recv(1024)
+            print(message)
             filename = message.split()[1]
-            print(filename)
+            print(path.exists(filename[1:]))
+
             f = open(filename[1:])
             outputdata = f.read()
 
@@ -22,34 +27,32 @@ class ConnectionThread(Thread):
             for i in range(0, len(outputdata)):
                 connectionSocket.send(outputdata[i].encode())
             connectionSocket.send("\r\n".encode())
+            connectionSocket.close()
+
+        except IOError:
+            connectionSocket.send("HTTP/1.1 404 Not Found\r\n\r\n".encode())
+            connectionSocket.send(bytes("<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n", "UTF-8"))
+            connectionSocket.close()
 
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 
-# Prepare a sever socket
-# Fill in start
-HOST = '10.10.63.19'
+HOST = '10.10.62.135'
 PORT = 8765
 serverSocket.bind((HOST, PORT))
 serverSocket.listen(1)
 
 threads = []
-# Fill in end
+
 print('Ready to serve...')
 while True:
-
     connectionSocket, addr = serverSocket.accept()
     print('  Local Server:  Accepting connection to ' + str(addr))
 
-    try:
-        nextThread = ConnectionThread(addr[0], addr[1])
-        nextThread.start()
-        threads.append(nextThread)
+    nextThread = ConnectionThread(addr[0], addr[1])
+    nextThread.start()
+    threads.append(nextThread)
 
-        connectionSocket.close()
-    except IOError:
-        connectionSocket.send(("HTTP/1.1 404 Not Found\r\n\r\n").encode())
-        connectionSocket.close()
 for thread in threads:
     thread.join()
 
