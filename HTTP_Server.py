@@ -1,7 +1,9 @@
+import time
 from socket import *
 from threading import Thread
 import os.path
 from os import path
+import datetime
 import sys  # In order to terminate the program
 
 
@@ -17,12 +19,15 @@ class ConnectionThread(Thread):
         try:
             message = connectionSocket.recv(1024)
             filename = message.split()[1]
-            print("File Exists: " + str(path.exists(filename[1:])))
+            print("File Exists: "+str() + str(path.exists(filename[1:])))
 
             f = open(filename[1:])
             outputdata = f.read()
 
-            connectionSocket.send('HTTP/1.1 200 OK\r\n\r\n'.encode())
+            date = datetime.datetime.now().strftime("%a, %d %b %Y, %H:%M:%S %Z")
+
+            response = 'HTTP/1.1 200 OK\r\nConnection: close\r\nDate: %s\r\nServer: %s\r\nContent-Type: %s\r\n\r\n' % (str(date), HOST, "text/html")
+            connectionSocket.send(response.encode())
             for i in range(0, len(outputdata)):
                 connectionSocket.send(outputdata[i].encode())
             connectionSocket.send("\r\n".encode())
@@ -36,7 +41,7 @@ class ConnectionThread(Thread):
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 
-HOST = '10.10.62.135'
+HOST = '10.10.63.243'
 PORT = 8765
 serverSocket.bind((HOST, PORT))
 serverSocket.listen(1)
